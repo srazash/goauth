@@ -2,6 +2,7 @@ package User
 
 import (
 	"crypto/sha256"
+	"math/rand/v2"
 )
 
 type usertype int
@@ -11,6 +12,12 @@ const (
 	Admin
 	SuperAdmin
 )
+
+var Usertype = map[usertype]string{
+	StandardUser: "Standard User",
+	Admin:        "Administrator",
+	SuperAdmin:   "Super Administrator",
+}
 
 type User struct {
 	uid      int
@@ -51,9 +58,7 @@ func (u *User) GetPassword() []byte {
 }
 
 func (u *User) SetPassword(password string) {
-	hash := sha256.New()
-	hash.Write([]byte(password))
-	u.password = hash.Sum(nil)
+	u.password = hashPassword(password)
 }
 
 func (u *User) GetEmail() string {
@@ -68,6 +73,10 @@ func (u *User) GetUsertype() usertype {
 	return u.usertype
 }
 
+func (u *User) StringifyUsertype() string {
+	return Usertype[u.usertype]
+}
+
 func (u *User) SetUsertype(usertype usertype) {
 	u.usertype = usertype
 }
@@ -78,4 +87,24 @@ func (u *User) GetEnabled() bool {
 
 func (u *User) SetEnabled(enabled bool) {
 	u.enabled = enabled
+}
+
+func CreateUser(fullname string, username string, password string, email string, usertype usertype, enabled bool) *User {
+	u := User{
+		uid:      rand.IntN(1000),
+		fullname: fullname,
+		username: username,
+		password: hashPassword(password),
+		email:    email,
+		usertype: usertype,
+		enabled:  enabled,
+	}
+
+	return &u
+}
+
+func hashPassword(password string) []byte {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+	return hash.Sum(nil)
 }
